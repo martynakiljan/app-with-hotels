@@ -1,7 +1,21 @@
 .header {
     height: 150px;
     background-position: center;
+    overflow: hidden;
+    position: relative;
+
+}
+
+.headerImage {
+    position: absolute;
+    border: 5px solid red;
+    background-size: 110%;
+    top: -5%;
+    left: -5%;
+    bottom: -5%;
+    right: -5%;
+    z-index: -1;
     background: url(../../images/photoHotel1.jpg) center;
     background-repeat: no-repeat;
-     background-size: cover;
+    background-size: cover;
 }

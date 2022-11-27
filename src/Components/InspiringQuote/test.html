@@ -1,0 +1,189 @@
+<div id="column-chart-6">
+	</div>
+	<div id="column-chart-legend-6"></div>
+	<script>
+		(function () {
+			// gap between points in px
+			var gap = 50;
+
+			// point width in px
+			var width = 60;
+
+			// each category is:
+			// half gap | point | gap | point | half gap
+			var categoryWidth = width * 1 + gap * 2;
+			var containerID = 'column-chart-6';
+			var legendID = 'column-chart-legend-6';
+			var chartHeight = '100%';
+			var cats = ['2017', '2018', '2019', '2020', '2021', '2021'];
+			var chartType = 'column';
+			var seriesArr = [
+				{
+					name: 'Konzerngewinn',
+					data: [10, 205, 333, 414, 645],
+					zIndex: 1,
+					type: 'column',
+					size: '100%'
+
+				}
+			];
+			var legendSelector = '#' + legendID;
+			var chartOptions = {
+				title: {
+					text: '',
+				},
+				credits: {
+					enabled: false,
+					align: 'left',
+				},
+				legend: {
+					align: 'left',
+					symbolHeight: 12,
+					symbolHeight: 12,
+					symbolWidth: 12,
+					x: 52,
+				},
+				plotOptions: {
+					column: {
+						groupPadding: 0,
+						pointPadding: gap / categoryWidth
+					},
+					series: {
+						dataLabels: {
+							useHTML: true,
+							enabled: true,
+							style: {
+								'text-align': 'center',
+							}
+						},
+					},
+				},
+				xAxis: {
+					categories: cats,
+					useHTML: true,
+				},
+				series: seriesArr,
+				chart: {
+					styledMode: true,
+					marginLeft: 0,
+					height: chartHeight,
+					type: chartType,
+					useHTML: true,
+					events: {
+						load: function () {
+							var chart = this;
+							var legends;
+							if (legendSelector) {
+								legends = Array.prototype.slice.call(
+									document.querySelectorAll(legendSelector)
+								);
+							}
+							if (legends) {
+								legends.forEach((legend) => {
+									legend.innerHTML = '';
+									legend.classList.add('outside-legend');
+									var iterater = '';
+									iterater = chart.series;
+									iterater.forEach(function (serie, i) {
+										var parent = document.createElement('div');
+										parent.classList.add('series-outside-legend-item');
+										parent.classList.add('series');
+										if (!serie.visible) {
+											parent.classList.add('inactive');
+										}
+										parent.setAttribute('data-index', i);
+										parent.setAttribute('data-colorIndex', serie.colorIndex);
+										parent.setAttribute('data-chartType', serie.type);
+										parent.innerHTML = serie.name;
+										legend.append(parent);
+									});
+								});
+							}
+
+							renderer = chart.renderer,
+								data = chart.series[0].data;
+
+							for (let i = 1; i < data.length; i++) {
+								const growthValue = Math.round((data[i].y / data[i - 1].y - 1) * 100);
+
+								if (growthValue > 0) {
+									data[i].customLabel = renderer.label(`+${growthValue}%`).attr({
+										'font-size': 30,
+										'paddingRight': 20
+									}).add().toFront().hide();
+
+									data[i].customPath = renderer.path().attr({
+										stroke: '#aaa',
+										'stroke-width': 1
+									}).add().toFront().hide();
+								}
+							}
+							data = chart.series[0].data;
+
+							data.forEach(point => {
+								const label = point.customLabel,
+									path = point.customPath;
+
+								if (label) {
+									if (chart.series[0].visible) {
+										const xPos = point.plotX + chart.plotBox.x - point.pointWidth / 2,
+											yPos = point.plotY + chart.plotBox.y + 1;
+
+										label.attr({
+											x: xPos - label.width - 2,
+											y: yPos
+										});
+
+										path.attr({
+											d: ['M', xPos, yPos, 'L', xPos - label.width, yPos]
+										});
+
+										path.show();
+										label.show();
+									} else {
+										path.hide();
+										label.hide();
+									}
+								}
+							});
+						},
+					},
+				},
+			};
+			var chart = Highcharts.chart(containerID, chartOptions);
+			var itemsArray = Array.prototype.slice.call(
+				document.querySelectorAll(legendSelector + ' .series-outside-legend-item')
+			);
+
+			itemsArray.forEach((item, i) => {
+				var index = item.getAttribute('data-index');
+				var d = chart.series[index];
+
+				item.addEventListener('click', (e) => {
+					var index = item.getAttribute('data-index');
+					var d = chart.series[index];
+					let currentItems = Array.prototype.slice.call(
+						document.querySelectorAll(
+							legendSelector +
+							' .series-outside-legend-item[data-index="' +
+							index +
+							'"]'
+						)
+					);
+					currentItems.forEach((item) => {
+						if (item.classList.contains('inactive')) {
+							item.classList.remove('inactive');
+						} else {
+							item.classList.add('inactive');
+						}
+					});
+
+					if (d.visible) {
+						d.setVisible(false);
+					} else {
+						d.setVisible(true);
+					}
+				});
+			});
+		})();
+	</script>
