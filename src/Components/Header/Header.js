@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./Header.module.css";
 import withMousePosition from "../../hoc/withMousePosition";
+import InspiringQuote from "../InspiringQuote/InspiringQuote";
 
 function Header(props) {
   const paralaxStyles = {
@@ -14,6 +15,7 @@ function Header(props) {
     <header className={styles.header}>
       <div className={styles.headerImage} style={paralaxStyles}></div>
       {props.children}
+      <InspiringQuote/>
     </header>
   );
 }

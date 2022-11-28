@@ -1,11 +1,5 @@
 import ThemeContext from "../../context/themeContext";
 import { useContext } from "react";
-import React, {
-  useEffect,
-  useState,
-  useReducer
-} from "react";
-
 
 export default function Loading() {
   const theme = useContext(ThemeContext);

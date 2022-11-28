@@ -1,5 +1,5 @@
 import "./App.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useReducer } from "react";
 import Menu from "./components/Menu/Menu.js";
 import Header from "./components/Header/Header.js";
 import Hotels from "./components/Hotels/Hotels.js";
@@ -7,9 +7,11 @@ import Loading from "./components/Ui/Loading";
 import Searchbar from "./components/Searchbar/Searchbar";
 import Layout from "./components/Layout/Layout";
 import Footer from "./components/Footer/Footer";
-import ThemeButton from "./components/Ui/ThemeButton";
+import ThemeButton from "./components/Ui/ThemeButton.jsx";
 import ThemeContext from "./context/themeContext";
 import AuthContext from "./context/authContext";
+import BestHotel from "./components/BestHotel/BestHotel";
+import InspiringQuote from "./components/InspiringQuote/InspiringQuote";
 
 const backendHotels = [
   {
@@ -35,7 +37,7 @@ const backendHotels = [
   {
     id: 3,
     name: "Bali Garden Beach Resort",
-    city: "Sansibar",
+    city: "Bali",
     rating: "7.7",
     reviews: "634",
     img: "",
@@ -74,34 +76,66 @@ const backendHotels = [
   },
 ];
 
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "change-theme":
+      return {
+        ...state,
+        theme: state.theme === "danger" ? "primary" : "danger",
+      };
+    case "set-hotels":
+      return { ...state, hotels: action.hotels };
+    case "set-loading":
+      return { ...state, loading: action.loading };
+    case "login":
+      return { ...state, isAuthenticated: true };
+    case "logout":
+      return { ...state, isAuthenticated: false };
+
+    default:
+      throw new Error("error action:" + action.type);
+  }
+};
+
+const initialState = {
+  hotels: [],
+  loading: true,
+  isAuthenticated: false,
+  theme: "danger",
+};
+
 function App() {
-  const [hotels, setHotels] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [theme, setTheme] = useState("danger");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     setTimeout(() => {
-      setHotels(backendHotels);
-      setLoading(false);
+      // setHotels(backendHotels);
+      // setLoading(false);
+
+      dispatch({ type: "set-hotels", hotels: backendHotels });
+      dispatch({ type: "set-loading", loading: false });
     }, 1000);
   }, []);
+
+  const getBestHotel = () => {
+    if (state.hotels.length < 2) {
+      return null;
+    } else {
+      return state.hotels.sort((b, a) => (b.rating > a.rating ? -1 : 1))[0];
+    }
+  };
 
   const searchHandler = (term) => {
     const newHotels = [...backendHotels].filter((x) =>
       x.name.toLowerCase().includes(term.toLowerCase())
     );
-    setHotels(newHotels);
-  };
-
-  const changeTheme = () => {
-    console.log("ok");
-    const newTheme = theme === "warning" ? "danger" : "warning";
-    setTheme(newTheme);
+    // setHotels(newHotels);
+    dispatch({ type: "set-hotels", hotels: newHotels });
   };
 
   const header = (
     <Header>
+      <InspiringQuote />
       <Searchbar onSearch={(term) => searchHandler(term)} />
       <ThemeButton />
     </Header>
@@ -110,7 +144,14 @@ function App() {
   const menu = <Menu />;
   const content = (
     <div className="App-Container">
-      {loading ? <Loading /> : <Hotels hotels={hotels} />}
+      {state.loading ? (
+        <Loading />
+      ) : (
+        <>
+          <BestHotel getHotel={getBestHotel} />
+          <Hotels hotels={state.hotels} />
+        </>
+      )}
     </div>
   );
   const footer = <Footer />;
@@ -119,15 +160,17 @@ function App() {
     <>
       <AuthContext.Provider
         value={{
-          isAuthenticated: isAuthenticated,
-          login: () => setIsAuthenticated(false),
-          logout: () => setIsAuthenticated(true),
+          isAuthenticated: state.isAuthenticated,
+          login: () => dispatch({ type: "login", isAuthenticated: true }),
+          logout: () => dispatch({ type: "logout", isAuthenticated: false }),
+          // login: () => setIsAuthenticated(false),
+          // logout: () => setIsAuthenticated(true),
         }}
       >
         <ThemeContext.Provider
           value={{
-            color: theme,
-            changeTheme: changeTheme,
+            color: state.theme,
+            changeTheme: () => dispatch({ type: "change-theme" }),
           }}
         >
           <Layout

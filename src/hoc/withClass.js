@@ -1,3 +1,9 @@
+import React, {
+  useEffect,
+  useState,
+  useReducer
+} from "react";
+
 const withClass = (WrappedComponent, className) => {
   return (props) => {
     return (
