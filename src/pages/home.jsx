@@ -1,20 +1,14 @@
-import "./App.css";
-import { reducer, initialState } from "./reducer";
-import { BrowserRouter as Router, Link, Route } from "react-router-dom";
-import ReducerContext from "./context/reducerContext";
-import Menu from "./components/Menu/Menu.js";
-import Header from "./components/Header/Header.js";
-import Home from "./pages/home";
-import Searchbar from "./components/Searchbar/Searchbar";
-import Layout from "./components/Layout/Layout";
-import Footer from "./components/Footer/Footer";
-import ThemeButton from "./components/Ui/ThemeButton.jsx";
-import ThemeContext from "./context/themeContext";
-import AuthContext from "./context/authContext";
-import InspiringQuote from "./components/InspiringQuote/InspiringQuote";
-import React, { useReducer, useContext } from "react";
+import useStateStorage from "../hoc/useStateStorage";
+import Hotels from "../components/Hotels/Hotels";
+import { useEffect, useContext } from "react";
+import BestHotel from "../components/BestHotel/BestHotel";
+import LastHotel from "../components/Hotels/LastHotel";
+import useWebsiteTitle from "../hoc/useWebsiteTitle";
+import React from "react";
+import Loading from "../components/Ui/Loading";
+import reducerContext from "../context/reducerContext";
 
-function App() {
+export default function Home(props) {
   const backendHotels = [
     {
       id: 1,
@@ -77,72 +71,47 @@ function App() {
         "Overlooking Barcelona's port, this upscale 16th-century hotel is near the Gothic Quarter. It is a 9-minute walk from Drassanes Metro Station and 3 km from the Sagrada Família.",
     },
   ];
-  
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [lastHotel, setLastHotel] = useStateStorage("lastHotel", null);
+  const reducer = useContext(reducerContext);
 
-  const searchHandler = (term) => {
-    const newHotels = [...backendHotels].filter((x) =>
-      x.name.toLowerCase().includes(term.toLowerCase())
-    );
-    dispatch({ type: "set-hotels", hotels: newHotels });
+  useWebsiteTitle("Hotels APP");
+
+  useEffect(() => {
+    setTimeout(() => {
+      reducer.dispatch({ type: "set-hotels", hotels: backendHotels });
+      reducer.dispatch({ type: "set-loading", loading: false });
+    }, 1000);
+  }, []);
+
+  if (reducer.state.loading) {
+    return <Loading />;
+  }
+
+  const getBestHotel = () => {
+    if (reducer.state.hotels.length < 2) {
+      return null;
+    } else {
+      return reducer.state.hotels.sort((b, a) =>
+        b.rating > a.rating ? -1 : 1
+      )[0];
+    }
   };
 
-  const header = (
-    <Header>
-      <InspiringQuote />
-      <Searchbar onSearch={(term) => searchHandler(term)} />
-      <ThemeButton />
-    </Header>
-  );
+  const removeLastHotel = () => {
+    setLastHotel(null);
+  };
 
-  const menu = <Menu />;
-  const content = (
-    <>
-      <div className="App-Container">
-        <Route exact={true} path="/">
-          <Home />
-        </Route>
-      </div>
-
-      <Route path="/hotel/:id">
-        <p>kdmjenkjfn</p>
-      </Route>
-    </>
-  );
-
-  const footer = <Footer />;
+  const openHotel = (hotel) => {
+    setLastHotel(hotel);
+  };
 
   return (
-    <Router forceRefresh={true}>
-      <AuthContext.Provider
-        value={{
-          isAuthenticated: state.isAuthenticated,
-          login: () => dispatch({ type: "login", isAuthenticated: true }),
-          logout: () => dispatch({ type: "logout", isAuthenticated: false }),
-        }}
-      >
-        <ThemeContext.Provider
-          value={{
-            color: state.theme,
-            changeTheme: () => dispatch({ type: "change-theme" }),
-          }}
-        >
-          <ReducerContext.Provider
-            value={{
-              state: state,
-              dispatch: dispatch,
-            }}
-          >
-            <Layout
-              header={header}
-              menu={menu}
-              content={content}
-              footer={footer}
-            />
-          </ReducerContext.Provider>
-        </ThemeContext.Provider>
-      </AuthContext.Provider>
-    </Router>
+    <>
+      {lastHotel ? (
+        <LastHotel {...lastHotel} onRemove={removeLastHotel} />
+      ) : null}
+      <BestHotel getHotel={getBestHotel} />
+      <Hotels hotels={reducer.state.hotels} onOpen={openHotel} />
+    </>
   );
 }
-export default App;

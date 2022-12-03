@@ -2,9 +2,16 @@ import React, { useContext, useState } from "react";
 import styles from "./Hotel.module.css";
 import img from "../../images/photoHotel3.jpg";
 import ThemeContext from "../../context/themeContext";
+import { Link } from "react-router-dom";
 
 function Hotel(props) {
   const theme = useContext(ThemeContext);
+
+  const clickHandler = () => {
+    props.onOpen(props);
+
+    //w propsach jest aktualny hotel//
+  };
 
   return (
     <div className={`row ${styles.hotel}`}>
@@ -20,9 +27,7 @@ function Hotel(props) {
       <div className={`col ${styles.infoHotel}`}>
         <p className={styles.rate}>Rate: {props.rating}</p>
         <p className={styles.reviews}>Reviews: {props.reviews}</p>
-        <a href="#/" className={`ml-1 btn btn-${theme.color}`}>
-          Show me!
-        </a>
+        <Link to={`/hotel/${props.id}`}>Show me!</Link>
       </div>
 
       <div className="col-12">

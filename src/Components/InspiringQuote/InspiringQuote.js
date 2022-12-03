@@ -1,8 +1,4 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useState
-} from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 
 const styles = {
   position: "absolute",
@@ -35,11 +31,7 @@ const InspiringQuote = () => {
     console.log(quotes[Math.floor(Math.random()) * quotes.length]);
   }, [loading]);
 
-  return <p style = {
-    styles
-  } > {
-    quote
-  } < /p>;
+  return <p style={styles}> {quote} </p>;
 };
 
 export default InspiringQuote;
